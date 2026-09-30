@@ -20,13 +20,35 @@
 
 ## Why
 
-Claude Desktop keeps every **Code** tab conversation on the computer where it started. Start a long session on your
-desktop, sit down at your laptop, and it simply isn't there. Syncing `~/.claude` with a generic tool doesn't help
-either: Claude Desktop lists conversations from its own per-machine records, so copied transcripts never show up in
-the sidebar.
+A local session in Claude Desktop's **Code** tab lives on the computer where it started. You can steer it from your
+laptop with Remote Control, but it keeps running on the first machine — so that machine has to stay on, and Claude
+keeps using *its* files and tools. Syncing `~/.claude` with a generic tool doesn't help either: Claude Desktop lists
+conversations from its own per-machine records, so copied transcripts never show up in the sidebar.
 
 ClaudeSync moves the whole conversation — the Claude Code transcript **and** Claude Desktop's record of it — so it
-appears in the other computer's sidebar and you can just keep typing.
+appears in the other computer's sidebar and continues **there**, locally, and you can just keep typing.
+
+### Isn't this built into Claude Desktop?
+
+Partly, and it's worth knowing the built-in options — you may not need ClaudeSync at all:
+
+| | Remote Control | Cloud sessions | ClaudeSync |
+| --- | --- | --- | --- |
+| Where the session runs | on the first computer | on Anthropic's cloud | on the computer you're using |
+| Works while the first computer is off | ❌ | ✅ | ✅ |
+| Local files, tools, MCP servers | the first computer's | ❌ your GitHub repo | ✅ this computer's |
+| Uncommitted changes, local databases | the first computer's | ❌ | ✅ (sync the folder with [Syncthing](#keep-your-project-files-in-sync-too--use-syncthing)) |
+| Full conversation history | ✅ | a summary when you move a local session | ✅ |
+| Setup | none | none | your own free server (~15 min) |
+
+- **[Remote Control](https://code.claude.com/docs/en/remote-control)** (the *Other* section in the sidebar) is perfect when
+  your desktop stays on and you just want to check in or steer from the couch or your phone.
+- **[Cloud sessions](https://code.claude.com/docs/en/claude-code-on-the-web)** are great when the work lives in a GitHub
+  repo and doesn't need your local environment.
+- **ClaudeSync** is for the remaining case: you work locally and want the *same* session to continue on your other
+  computer with that computer's files and tools — even when the first one is switched off.
+
+ClaudeSync is a free hobby project, not a product. If Anthropic ships this natively, great — we'll point you to it.
 
 ## Features
 

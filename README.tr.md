@@ -16,12 +16,35 @@
 
 ## Neden
 
-Claude Desktop, **Code** sekmesindeki her sohbeti başladığı bilgisayarda tutar. Masaüstünde uzun bir oturuma başlayıp
-laptopa geçince sohbet orada yoktur. `~/.claude` klasörünü herhangi bir araçla eşitlemek de yetmez: Claude Desktop
-sohbet listesini her bilgisayarda kendi kayıtlarından okur, kopyalanan transcript'ler kenar çubuğunda görünmez.
+Claude Desktop'ın **Code** sekmesindeki yerel bir oturum, başladığı bilgisayarda yaşar. Remote Control ile laptoptan
+yönetebilirsin ama oturum ilk bilgisayarda çalışmaya devam eder; o bilgisayar açık kalmalıdır ve Claude onun dosyalarını
+ve araçlarını kullanır. `~/.claude` klasörünü herhangi bir araçla eşitlemek de yetmez: Claude Desktop sohbet listesini
+her bilgisayarda kendi kayıtlarından okur, kopyalanan transcript'ler kenar çubuğunda görünmez.
 
 ClaudeSync sohbetin tamamını — Claude Code transcript'ini **ve** Claude Desktop'ın kaydını — taşır; sohbet diğer
-bilgisayarın kenar çubuğunda görünür ve yazmaya devam edersin.
+bilgisayarın kenar çubuğunda görünür ve **orada**, yerel olarak devam eder.
+
+### Bu zaten Claude Desktop'ta yok mu?
+
+Kısmen var; hazır seçenekleri bilmek iyi olur, belki ClaudeSync'e hiç ihtiyacın yoktur:
+
+| | Remote Control | Cloud sessions | ClaudeSync |
+| --- | --- | --- | --- |
+| Oturum nerede çalışır | ilk bilgisayarda | Anthropic bulutunda | kullandığın bilgisayarda |
+| İlk bilgisayar kapalıyken | ❌ | ✅ | ✅ |
+| Yerel dosyalar, araçlar, MCP | ilk bilgisayarınkiler | ❌ GitHub deposu | ✅ bu bilgisayarınkiler |
+| Commit edilmemiş değişiklikler, yerel veritabanları | ilk bilgisayarınkiler | ❌ | ✅ (klasörü Syncthing ile eşitle) |
+| Tam konuşma geçmişi | ✅ | yerel oturumu taşırken özet | ✅ |
+| Kurulum | yok | yok | kendi ücretsiz sunucun (~15 dk) |
+
+- **[Remote Control](https://code.claude.com/docs/en/remote-control)** (kenar çubuğundaki *Other* bölümü): masaüstün açık
+  kalıyorsa ve koltuktan ya da telefondan göz atmak, yönlendirmek istiyorsan idealdir.
+- **[Cloud sessions](https://code.claude.com/docs/en/claude-code-on-the-web)**: iş bir GitHub deposundaysa ve yerel
+  ortamına ihtiyaç yoksa çok iyidir.
+- **ClaudeSync** geri kalan durum için: yerel çalışıyorsun ve *aynı* oturumun diğer bilgisayarında, o bilgisayarın
+  dosyaları ve araçlarıyla devam etmesini istiyorsun — ilk bilgisayar kapalıyken bile.
+
+ClaudeSync kâr amacı gütmeyen bir hobi projesi. Anthropic bunu resmi olarak eklerse harika olur; seni oraya yönlendiririz.
 
 ## Özellikler
 
