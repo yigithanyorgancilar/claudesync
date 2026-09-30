@@ -1,0 +1,16 @@
+# Copy to wrangler.toml and fill in your own values (see docs/self-hosting.md).
+name = "claudesync-api"
+main = "worker.js"
+compatibility_date = "2026-09-25"
+
+[[r2_buckets]]
+binding = "SESSIONS"
+bucket_name = "claudesync-sessions"
+
+[vars]
+SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_..."
+
+# The secret key is NOT stored here. Add it with:
+#   npx wrangler secret put SUPABASE_SECRET_KEY
+# Never put the secret key in this file or in the desktop app.

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs the sync engine against an in-memory cloud and two simulated computers. `dotnet run` exits non-zero on failure. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>ClaudeSync.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Core\**\*.cs" LinkBase="Core" />
+    <Compile Include="..\..\GlobalUsings.cs" Link="GlobalUsings.cs" />
+  </ItemGroup>
+</Project>

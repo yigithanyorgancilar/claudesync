@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>ClaudeSync</RootNamespace>
+    <AssemblyName>ClaudeSync</AssemblyName>
+    <ApplicationIcon>Assets\ClaudeSync.ico</ApplicationIcon>
+    <Version>2.1.0</Version>
+    <Product>ClaudeSync</Product>
+    <Authors>yigithanyorgancilar</Authors>
+    <Description>Continue Claude Desktop Code conversations on another computer.</Description>
+    <RepositoryUrl>https://github.com/yigithanyorgancilar/claudesync</RepositoryUrl>
+    <!-- Fluent (Windows 11) theme is still marked experimental in WPF. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <Page Remove="tests\**" />
+    <Resource Include="Assets\ClaudeSync.ico" />
+    <Resource Include="Assets\ClaudeSync.png" />
+  </ItemGroup>
+
+</Project>

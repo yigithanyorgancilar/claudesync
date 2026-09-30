@@ -1,0 +1,74 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+  <BooleanToVisibilityConverter x:Key="Visible" />
+
+  <Style x:Key="Icon" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale" />
+  </Style>
+
+  <Style x:Key="Card" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <Style x:Key="Muted" TargetType="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style x:Key="SectionHeader" TargetType="TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+  </Style>
+
+  <Style x:Key="SubtleButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+    <Setter Property="Padding" Value="14,6" />
+  </Style>
+
+  <!-- Status colour for a ConversationItem.Tone, used by dots, icons and the status card. -->
+  <Style x:Key="ToneForeground" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding Tone}" Value="Success"><Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Attention"><Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Warning"><Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Error"><Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" /></DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="ToneCard" TargetType="Border">
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SystemFillColorNeutralBackgroundBrush}" />
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding Tone}" Value="Success"><Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Attention"><Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Warning"><Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" /></DataTrigger>
+      <DataTrigger Binding="{Binding Tone}" Value="Error"><Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" /></DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="Dialog" TargetType="Window">
+    <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="ShowInTaskbar" Value="False" />
+    <Setter Property="UseLayoutRounding" Value="True" />
+  </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,8 @@
+bin/
+obj/
+publish/
+publish-portable/
+.vs/
+*.user
+server/wrangler.toml
+server/.wrangler/
