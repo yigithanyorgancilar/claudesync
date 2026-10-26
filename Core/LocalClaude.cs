@@ -34,9 +34,18 @@ public sealed class LocalClaude(AppConfig config)
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var candidates = new List<string> { Path.Combine(roaming, "Claude"), Path.Combine(local, "Claude-3p"), Path.Combine(local, "Claude") };
+        // Since October 2026 Claude Desktop keeps its data in %LOCALAPPDATA%\Claude-Data\<install id> (e.g. claude_pzs8sxrjxfjjc)
+        // and leaves only a ".user-data-left.*" marker in %APPDATA%\Claude.
+        var dataRoot = Path.Combine(local, "Claude-Data");
+        if (Directory.Exists(dataRoot)) candidates.AddRange(Directory.GetDirectories(dataRoot));
         var packages = Path.Combine(local, "Packages");
         if (Directory.Exists(packages))
-            candidates.AddRange(Directory.GetDirectories(packages, "Claude_*").Select(x => Path.Combine(x, "LocalCache", "Roaming", "Claude")));
+            foreach (var package in Directory.GetDirectories(packages, "Claude_*"))
+            {
+                candidates.Add(Path.Combine(package, "LocalCache", "Roaming", "Claude"));
+                var virtualized = Path.Combine(package, "LocalCache", "Local", "Claude-Data");
+                if (Directory.Exists(virtualized)) candidates.AddRange(Directory.GetDirectories(virtualized));
+            }
         // Several installs can leave data behind; the one written most recently is the one in use.
         var found = candidates.Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(x => Directory.Exists(Path.Combine(x, "claude-code-sessions")))

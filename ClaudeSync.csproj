@@ -11,7 +11,7 @@
     <RootNamespace>ClaudeSync</RootNamespace>
     <AssemblyName>ClaudeSync</AssemblyName>
     <ApplicationIcon>Assets\ClaudeSync.ico</ApplicationIcon>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <Product>ClaudeSync</Product>
     <Authors>yigithanyorgancilar</Authors>
     <Description>Continue Claude Desktop Code conversations on another computer.</Description>
