@@ -123,7 +123,9 @@ begin
     for update of s;
   if not found then raise exception 'session not found' using errcode = 'P0002'; end if;
   if v_session.head_version_id is distinct from p_expected_head then
-    raise exception 'version conflict' using errcode = '40001';
+    -- Never use 40001 here: PostgREST treats it as transient and retries the call forever, which fills its
+    -- connection pool until every query hangs. PT409 makes it answer HTTP 409 once.
+    raise sqlstate 'PT409' using message = 'version conflict';
   end if;
   if not exists (select 1 from public.devices d where d.id = p_device_id and d.owner_id = p_owner_id) then
     raise exception 'device not found' using errcode = 'P0002';

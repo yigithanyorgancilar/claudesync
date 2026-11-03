@@ -189,6 +189,7 @@ public static class L
     public static string RemoveFailed => T("Could not remove the conversation", "Sohbet kaldırılamadı");
     public static string SignInWithGoogle => T("Sign in with Google", "Google ile giriş yap");
     public static string WaitingForBrowser => T("Waiting for the browser…", "Tarayıcıda giriş bekleniyor…");
+    public static string Connecting => T("Connecting…", "Bağlanıyor…");
     public static string SignInFailedTitle => T("Could not sign in", "Giriş yapılamadı");
     public static string ThisComputer(string name) => T("This computer: " + name, "Bu bilgisayar: " + name);
     public static string SwitchAccount => T("Switch account", "Hesap değiştir");
@@ -307,7 +308,10 @@ public static class L
     public static string SignInFirst => T("Sign in with Google first.", "Önce Google ile giriş yap.");
     public static string UserInfoFailed => T("Could not get the account details.", "Kullanıcı bilgisi alınamadı.");
     public static string ServerUnreachable => T("Cannot reach the server: ", "Sunucuya ulaşılamadı: ");
-    public static string ServerTimeout => T("The server did not respond in time.", "Sunucu zamanında yanıt vermedi.");
+    public static string ServerTimeout => T("The server did not respond in time. Its database may be stuck; check your Supabase project.",
+        "Sunucu zamanında yanıt vermedi. Veritabanı takılmış olabilir; Supabase projeni kontrol et.");
+    public static string ServerFailed(int code) => T($"The sync server reported an error (HTTP {code}). Its database may be stuck; check your Supabase project.",
+        $"Eşitleme sunucusu hata verdi (HTTP {code}). Veritabanı takılmış olabilir; Supabase projeni kontrol et.");
     public static string NoVersionId => T("The server did not return a version id.", "Sunucu sürüm numarası döndürmedi.");
     public static string ServerNoDelete => T("The server does not support removing conversations yet. Deploy the latest Worker (server/worker.js).",
         "Sunucu sohbet silmeyi henüz desteklemiyor. Güncel Worker'ı (server/worker.js) yayınla.");

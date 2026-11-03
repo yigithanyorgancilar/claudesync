@@ -170,8 +170,10 @@ async function handle(request, env) {
       }, true);
       return json(result, 201);
     } catch (cause) {
-      await env.SESSIONS.delete(blobKey);
-      if (cause.code === "40001") return fail("Version conflict", 409);
+      // Delete the package only on a definite rejection. After a timeout or 5xx the version may have been
+      // committed anyway, and deleting would leave the conversation's head pointing at nothing.
+      if (cause.status >= 400 && cause.status < 500) await env.SESSIONS.delete(blobKey);
+      if (cause.code === "PT409") return fail("Version conflict", 409);
       throw cause;
     }
   }

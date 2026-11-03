@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
 
@@ -136,7 +137,15 @@ public sealed class SyncEngine(AppConfig config, ICloudApi cloud, LocalClaude cl
             if (baseline.Sig is not null) return await Upload(sub, map, local, head, baseline, context, userInitiated: false);
         }
 
-        var remote = await Fetch(sub, cloudSession, head);
+        Remote remote;
+        try { remote = await Fetch(sub, cloudSession, head); }
+        catch (CloudException ex) when (ex.Status == HttpStatusCode.NotFound && local is not null)
+        {
+            // The newest cloud version lost its package, so nothing can ever be downloaded from it.
+            // Publish this computer's copy on top; earlier versions stay in Backups.
+            Store.Log($"Sync {sub.SessionId}: head {head} has no package, publishing the local copy");
+            return await Upload(sub, map, local, head, baseline, context, userInitiated: resolution != Resolution.Auto);
+        }
         if (local is null) return Install(sub, map, session, remote, context, remote.Ids.Count);
 
         var localOnly = local.Ids.Count(id => !remote.Ids.Contains(id));

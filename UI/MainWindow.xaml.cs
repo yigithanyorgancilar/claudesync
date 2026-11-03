@@ -139,6 +139,7 @@ public partial class MainWindow : Window
     private async Task SyncCore(Func<Task<IReadOnlyList<SessionReport>>>? work = null)
     {
         SetSyncing(true);
+        var reachable = true;
         try
         {
             var reports = await Task.Run(work ?? (() => engine.SyncAll()));
@@ -147,9 +148,13 @@ public partial class MainWindow : Window
             // Removed from the cloud on another computer: stop syncing it here too.
             foreach (var removed in reports.Where(x => x.Status == SyncStatus.MissingCloud)) Forget(removed.SessionId);
         }
-        catch (Exception ex) { HandleCloudError(ex); }
-        try { library = await cloud.Library(); }
-        catch (Exception ex) { HandleCloudError(ex); }
+        catch (Exception ex) { HandleCloudError(ex); reachable = ex is not CloudException; }
+        // A server that just failed would only make the user wait through a second timeout.
+        if (reachable)
+        {
+            try { library = await cloud.Library(); }
+            catch (Exception ex) { HandleCloudError(ex); }
+        }
         lastCheck = DateTimeOffset.Now;
         SetSyncing(false);
         Render();
@@ -545,6 +550,7 @@ public partial class MainWindow : Window
         try
         {
             await cloud.SignIn();
+            SignInText.Text = L.Connecting;
             var (userId, email) = await cloud.User();
             await Guarded(async () =>
             {
@@ -557,10 +563,17 @@ public partial class MainWindow : Window
                 }
                 config.UserId = userId;
                 config.Email = email;
-                var current = await cloud.Library();
-                if (!(current["devices"]?.AsArray() ?? []).Any(x => P(x, "id") == config.DeviceId))
-                    config.DeviceId = await cloud.RegisterDevice(Environment.MachineName);
                 Save();
+                try
+                {
+                    var current = await cloud.Library();
+                    if (!(current["devices"]?.AsArray() ?? []).Any(x => P(x, "id") == config.DeviceId))
+                        config.DeviceId = await cloud.RegisterDevice(Environment.MachineName);
+                    Save();
+                }
+                // Signed in, the server just can't be reached: this computer is already registered, so carry on
+                // and let the sync banner report the problem.
+                catch (CloudException ex) when (config.DeviceId.Length > 0) { Store.Log("Device check: " + ex.Message); }
             }, L.SignInFailedTitle);
             UpdateAccount();
             await SyncNow();

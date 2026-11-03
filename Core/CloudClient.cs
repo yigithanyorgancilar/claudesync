@@ -27,7 +27,10 @@ public sealed class CloudException(string message, HttpStatusCode status) : Exce
 
 public sealed class CloudClient(AppConfig config) : ICloudApi
 {
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(5) };
+    private static readonly HttpClient Http = new() { Timeout = Timeout.InfiniteTimeSpan };
+    /// <summary>Metadata calls fail fast so a stuck server cannot freeze sign-in or the sync button for minutes.</summary>
+    private static readonly TimeSpan RequestLimit = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan TransferLimit = TimeSpan.FromMinutes(5);
     private readonly SemaphoreSlim tokenGate = new(1, 1);
     private AuthTokens tokens = LoadTokensSafe();
     public bool HasSession => !string.IsNullOrEmpty(tokens.RefreshToken);
@@ -119,8 +122,9 @@ public sealed class CloudClient(AppConfig config) : ICloudApi
         using var req = new HttpRequestMessage(HttpMethod.Post, config.SupabaseUrl.TrimEnd('/') + "/auth/v1/token?grant_type=" + grant);
         req.Headers.Add("apikey", config.PublishableKey);
         req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-        using var response = await Http.SendAsync(req);
-        var content = await response.Content.ReadAsStringAsync();
+        var (response, payload) = await Send(req, RequestLimit);
+        using var _ = response;
+        var content = Encoding.UTF8.GetString(payload);
         if (!response.IsSuccessStatusCode)
         {
             if (grant == "refresh_token" && (int)response.StatusCode is 400 or 401)
@@ -167,9 +171,10 @@ public sealed class CloudClient(AppConfig config) : ICloudApi
         using var req = new HttpRequestMessage(HttpMethod.Get, config.SupabaseUrl.TrimEnd('/') + "/auth/v1/user");
         req.Headers.Add("apikey", config.PublishableKey);
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await AccessToken());
-        using var response = await Http.SendAsync(req);
+        var (response, payload) = await Send(req, RequestLimit);
+        using var _ = response;
         if (!response.IsSuccessStatusCode) throw new CloudException(L.UserInfoFailed, response.StatusCode);
-        var user = Parse(await response.Content.ReadAsStringAsync());
+        var user = Parse(Encoding.UTF8.GetString(payload));
         return (user["id"]?.GetValue<string>() ?? "", user["email"]?.GetValue<string>());
     }
 
@@ -186,21 +191,31 @@ public sealed class CloudClient(AppConfig config) : ICloudApi
             if (headers is not null) foreach (var (key, value) in headers) req.Headers.TryAddWithoutValidation(key, value);
             if (body is byte[] bytes) { req.Content = new ByteArrayContent(bytes); req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/zip"); }
             else if (body is not null) req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
-            HttpResponseMessage response;
-            try { response = await Http.SendAsync(req); }
-            catch (HttpRequestException ex) { throw new CloudException(L.ServerUnreachable + ex.Message, 0); }
-            catch (TaskCanceledException) { throw new CloudException(L.ServerTimeout, HttpStatusCode.RequestTimeout); }
+            var transfer = body is byte[] || path.EndsWith("/download", StringComparison.Ordinal);
+            var (response, payload) = await Send(req, transfer ? TransferLimit : RequestLimit);
             using (response)
             {
                 if (response.StatusCode == HttpStatusCode.Unauthorized && attempt == 0) continue;
-                var payload = await response.Content.ReadAsByteArrayAsync();
                 if (response.IsSuccessStatusCode) return payload;
+                if ((int)response.StatusCode >= 500) throw new CloudException(L.ServerFailed((int)response.StatusCode), response.StatusCode);
                 var detail = Encoding.UTF8.GetString(payload);
                 try { detail = Parse(detail)["error"]?.GetValue<string>() ?? detail; } catch (Exception) { }
                 throw new CloudException($"{detail} (HTTP {(int)response.StatusCode})", response.StatusCode);
             }
         }
     }
+    private static async Task<(HttpResponseMessage Response, byte[] Payload)> Send(HttpRequestMessage request, TimeSpan limit)
+    {
+        using var timeout = new CancellationTokenSource(limit);
+        try
+        {
+            var response = await Http.SendAsync(request, timeout.Token);
+            return (response, await response.Content.ReadAsByteArrayAsync(timeout.Token));
+        }
+        catch (HttpRequestException ex) { throw new CloudException(L.ServerUnreachable + ex.Message, 0); }
+        catch (OperationCanceledException) { throw new CloudException(L.ServerTimeout, HttpStatusCode.RequestTimeout); }
+    }
+
     private async Task<JsonNode> Json(HttpMethod method, string path, object? body = null, Dictionary<string, string>? headers = null)
         => Parse(Encoding.UTF8.GetString(await Api(method, path, body, headers)));
 

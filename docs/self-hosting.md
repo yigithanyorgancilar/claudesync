@@ -89,6 +89,7 @@ When a new release changes `server/worker.js`, run `npx wrangler deploy` again i
 | "Sign in required (HTTP 401)" | The Worker's `SUPABASE_URL` / publishable key point to a different project than the app. |
 | "Internal error (HTTP 500)" when uploading | The Worker secret is missing: `npx wrangler secret put SUPABASE_SECRET_KEY`. |
 | "The server does not support removing conversations yet" | Redeploy the latest `server/worker.js`. |
+| Every request times out or returns HTTP 500 while `/health` works, and Supabase's Postgres logs show `40001 version conflict` once per second | Your schema is older than 2.1.2 and an upload got stuck in a PostgREST retry loop. Run `server/schema.sql` again in the SQL editor, then restart the project (Project Settings → General). |
 
 ## Privacy
 

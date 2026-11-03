@@ -21,6 +21,7 @@ internal static class Program
             await Test("State files from version 1 are migrated without re-uploading", () => MigrateV1State(Path.Combine(root, "4")));
             await Test("A half-written last line is not uploaded", () => PartialLine(Path.Combine(root, "5")));
             await Test("A rewound conversation (new transcript id) keeps syncing", () => Rewound(Path.Combine(root, "7")));
+            await Test("A cloud version whose package is gone heals from the local copy", () => MissingPackage(Path.Combine(root, "9")));
             await Test("Removing a conversation in the cloud leaves local files alone", () => RemovedElsewhere(Path.Combine(root, "6")));
             await Test("Uses the Claude account Desktop is signed in with", () => AccountDetection(Path.Combine(root, "8")));
             await Test("Legacy hash matches version 1 algorithm", LegacyHashCompat);
@@ -212,6 +213,33 @@ internal static class Program
         Is(await b.Sync(), SyncStatus.Uploaded, "B continues the rewound conversation");
         Is(await a.Sync(), SyncStatus.Downloaded, "A receives it");
         Check(File.ReadAllText(a.TranscriptFor(newCli)).Contains("\"b5\""), "A did not receive b5");
+    }
+
+    /// <summary>The version row exists but its zip is gone: the Worker deleted it after a timed-out publish that had in fact committed.</summary>
+    private static async Task MissingPackage(string root)
+    {
+        var cloud = new FakeCloud();
+        var a = new Device(root, "A", cloud, "proj");
+        var b = new Device(root, "B", cloud, "proj");
+        a.CreateConversation("m1", "m2");
+        cloud.AddSession(Device.SessionId, Device.CliId);
+        a.Subscribe(); b.Subscribe();
+        Is(await a.Sync(), SyncStatus.Uploaded, "A first upload");
+        Is(await b.Sync(), SyncStatus.Downloaded, "B first download");
+
+        a.Append("m3");
+        await cloud.Upload(Device.SessionId, a.PackLikeVersion1(), "A", cloud.Head(Device.SessionId), "lost");
+        cloud.LosePackage(cloud.Head(Device.SessionId)); // A never learned that this publish succeeded
+
+        Is(await a.Sync(), SyncStatus.Uploaded, "A republishes its copy over the broken head");
+        Is(await b.Sync(), SyncStatus.Downloaded, "B gets it");
+        Check(b.TranscriptText().Contains("\"m3\""), "B did not receive m3");
+        Is(await a.Sync(), SyncStatus.UpToDate, "A afterwards");
+
+        var empty = new Device(root, "C", cloud, "proj");
+        empty.Subscribe();
+        cloud.LosePackage(cloud.Head(Device.SessionId));
+        Is(await empty.Sync(), SyncStatus.Error, "a computer with no local copy cannot heal it");
     }
 
     private static async Task RemovedElsewhere(string root)
@@ -453,6 +481,7 @@ internal sealed class FakeCloud : ICloudApi
     public string Head(string id) => sessions[id].Head;
     public void AddSession(string id, string cli) => sessions[id] = new Session { Cli = cli };
     public void Remove(string id) => sessions.Remove(id);
+    public void LosePackage(string versionId) => blobs.Remove(versionId);
 
     public Task<JsonNode> Library()
     {
@@ -462,7 +491,12 @@ internal sealed class FakeCloud : ICloudApi
         return Task.FromResult<JsonNode>(new JsonObject { ["sessions"] = list, ["projects"] = new JsonArray(), ["devices"] = new JsonArray(), ["links"] = new JsonArray() });
     }
     public Task<JsonArray> Versions(string sessionId) => Task.FromResult(new JsonArray(sessions[sessionId].Versions.Select(v => (JsonNode)v.DeepClone()).ToArray()));
-    public Task<byte[]> Download(string versionId) { Downloads++; return Task.FromResult(blobs[versionId]); }
+    public Task<byte[]> Download(string versionId)
+    {
+        Downloads++;
+        return blobs.TryGetValue(versionId, out var blob) ? Task.FromResult(blob)
+            : throw new CloudException("Package missing from storage (HTTP 404)", HttpStatusCode.NotFound);
+    }
     public Task<string> Upload(string sessionId, byte[] package, string deviceId, string expectedHead, string transcriptHash)
     {
         var s = sessions[sessionId];
